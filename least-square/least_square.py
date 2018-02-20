@@ -54,4 +54,6 @@ if __name__ == '__main__':
     plt.scatter(x, y, color='lightblue')
     plt.plot(x, y_pred, color='red')
     # plt.plot(x, t, color='red')
+    
     plt.show()
+    # plt.savefig('least_square.png')
