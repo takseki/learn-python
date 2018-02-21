@@ -37,7 +37,7 @@ class LeastSquare:
     def predict(self, x):
         # 配列かどうかで分けている（ダサい）
         try:
-            X = self.__data_vec(x)
+            X = self.__design_mat(x)
         except TypeError:
             X = self.__data_vec(x)
         return np.dot(X, self.w)
