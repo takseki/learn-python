@@ -27,7 +27,7 @@ class LeastSquare:
         return np.array([self.__data_vec(x) for x in xv])
 
     # 学習データを入力して係数wを決定する
-    def fit(self, xv, y):
+    def fit(self, x, y):
         X = self.__design_mat(x)
         
         # solve (X^t X) w = X^t y        
@@ -36,10 +36,13 @@ class LeastSquare:
         return
     
     # 予測値を返す
-    #    xv は1次元配列前提, 1点のxに対しても同じように計算できるようにしたい...
-    def predict(self, xv):
-        # y_pred = X w
-        return np.dot(self.__design_mat(xv), self.w)
+    def predict(self, x):
+        # 配列かどうかで分けている（ダサい）
+        if isinstance(x, np.ndarray):
+            # y_pred = X w
+            return np.dot(self.__design_mat(x), self.w)
+        else:
+            return np.dot(self.__data_vec(x), self.w)
 
 if __name__ == '__main__':
     gen_model = GenModel()
@@ -50,7 +53,9 @@ if __name__ == '__main__':
     lls = LeastSquare()
     lls.fit(x, y)
     y_pred = lls.predict(x)
-
+    # y_pred_ = lls.predict(x[0])
+    # print(y_pred_)
+    
     plt.scatter(x, y, color='lightblue')
     plt.plot(x, y_pred, color='red')
     # plt.plot(x, t, color='red')
