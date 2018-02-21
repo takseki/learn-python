@@ -32,18 +32,16 @@ class LeastSquare:
         
         # solve (X^t X) w = X^t y        
         self.w = np.linalg.solve(np.dot(X.T, X), np.dot(X.T, y))
-        print('w', self.w)
-        return
     
     # 予測値を返す
     def predict(self, x):
         # 配列かどうかで分けている（ダサい）
-        if isinstance(x, np.ndarray):
-            # y_pred = X w
-            return np.dot(self.__design_mat(x), self.w)
-        else:
-            return np.dot(self.__data_vec(x), self.w)
-
+        try:
+            X = self.__data_vec(x)
+        except TypeError:
+            X = self.__data_vec(x)
+        return np.dot(X, self.w)
+    
 if __name__ == '__main__':
     gen_model = GenModel()
     x = 0.1 * np.arange(100)
@@ -52,9 +50,11 @@ if __name__ == '__main__':
 
     lls = LeastSquare()
     lls.fit(x, y)
+    print('w', lls.w)
+    
     y_pred = lls.predict(x)
-    # y_pred_ = lls.predict(x[0])
-    # print(y_pred_)
+    y_pred_ = lls.predict(x[10])  # サンプル単位で渡しても動くことの確認
+    print('y_pred', y_pred_)
     
     plt.scatter(x, y, color='lightblue')
     plt.plot(x, y_pred, color='red')
