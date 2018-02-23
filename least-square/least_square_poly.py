@@ -24,7 +24,7 @@ class LeastSquare:
         
     # データを多項式基底関数による表示に直す
     def __data_vec(self, x):
-        return np.array([x**n for n in range(self.N)])
+        return np.array([x**n for n in range(self.N + 1)])
 
     # 計画行列 X を返す
     def __design_mat(self, xv):
@@ -56,7 +56,7 @@ if __name__ == '__main__':
     y = gen_model.observe(x)
     t = gen_model.generate(x)
 
-    lls = LeastSquare(6)
+    lls = LeastSquare(5)
     lls.fit(x, y)
     print('w', lls.w)
     
