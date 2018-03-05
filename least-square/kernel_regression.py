@@ -31,10 +31,7 @@ class KernelRegression:
     # グラム行列を返す
     def __gram_mat(self, x):
         N = x.size
-        K = np.empty((N, N))
-        for i in range(N):
-            for j in range(N):
-                K[i, j] = self.__kernel(x[i], x[j])
+        K = np.fromfunction(lambda i, j: self.__kernel(x[i], x[j]), (N, N), dtype=int)
         return K
 
     # 学習データを入力して係数aを決定する
@@ -49,10 +46,8 @@ class KernelRegression:
     # 予測値を返す
     def predict(self, x):
         # \sum_j k(x, k_j) a_j
-        K = np.empty((x.size, self.x.size))
-        for i in range(x.size):
-            for j in range(self.x.size):
-                K[i, j] = self.__kernel(x[i], self.x[j])
+        K = np.fromfunction(lambda i, j: self.__kernel(x[i], self.x[j]),
+                            (x.size, self.x.size), dtype=int)
         return K.dot(self.a)
     
 if __name__ == '__main__':
