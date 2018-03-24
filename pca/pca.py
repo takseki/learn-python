@@ -25,11 +25,11 @@ class Pca:
         Sigma = np.dot(X.T, X)
         vals, vecs = np.linalg.eigh(Sigma)
         # 固有値の大きい順にソート
-        pairs = list(zip(vals, vecs))
-        pairs.sort(key=op.itemgetter(0), reverse=True)
-        vals, vecs = zip(*pairs)
-        # 固有ベクトルを保持
-        self.v = np.array(vecs)
+        indices = vals.argsort()[::-1]
+        vals = vals[indices]
+        vecs = vecs[:, indices]
+        # v[i] : 第i主成分の固有ベクトル
+        self.v = np.array(vecs).T
 
     # x を主成分表示にして返す
     # n: 抽出する主成分の数
