@@ -1,7 +1,6 @@
 # coding: UTF-8
 import numpy as np
 import matplotlib.pyplot as plt
-import operator as op
 
 # テストデータ生成
 class GenModel:
@@ -20,6 +19,7 @@ class GenModel:
 class Pca:
     # データを入力して主成分ベクトルを計算する
     # データは平均0を前提とする
+    # shape(X)=(N,M)
     def fit(self, X):
         # 共分散行列
         Sigma = np.dot(X.T, X)
@@ -27,13 +27,14 @@ class Pca:
         # eighは固有値の昇順で出力される
         vals = vals[::-1]
         vecs = vecs[:, ::-1]
-        # v[i] : 第i主成分の固有ベクトル
-        self.v = np.array(vecs).T
+        # v[:,i] : 第i主成分の固有ベクトル
+        self.v = np.array(vecs)  # (M,M)
 
     # x を主成分表示にして返す
+    # shape(x)=(n_samples, M)
     # n: 抽出する主成分の数
     def transform(self, x, n):
-        return np.dot(x, self.v[:n].T)
+        return np.dot(x, self.v[:, :n])  # (n_samples,M)x(M,n)=(n_samples,M)
     
 if __name__ == '__main__':
     gen_model = GenModel()
@@ -56,9 +57,9 @@ if __name__ == '__main__':
     # 元データ
     ax1.scatter(x[:,0], x[:, 1], marker=".")
     # 固有ベクトルを描く
-    num = pca.v.shape[0]
+    num = pca.v.shape[1]
     ax1.quiver(np.zeros(num), np.zeros(num),
-               4 * pca.v[:, 0], 4 * pca.v[:, 1], angles='xy', scale_units='xy', scale=1)
+               4 * pca.v[0], 4 * pca.v[1], angles='xy', scale_units='xy', scale=1)
 
     # 主成分
     ax2.scatter(y[:,0], y[:, 1], marker=".")
