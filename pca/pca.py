@@ -24,10 +24,9 @@ class Pca:
         # 共分散行列
         Sigma = np.dot(X.T, X)
         vals, vecs = np.linalg.eigh(Sigma)
-        # 固有値の大きい順にソート
-        indices = vals.argsort()[::-1]
-        vals = vals[indices]
-        vecs = vecs[:, indices]
+        # eighは固有値の昇順で出力される
+        vals = vals[::-1]
+        vecs = vecs[:, ::-1]
         # v[i] : 第i主成分の固有ベクトル
         self.v = np.array(vecs).T
 

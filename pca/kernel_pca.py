@@ -39,30 +39,28 @@ class KernelPca:
         #                    self.__kernel(X[i], X[j]), (N, N), dtype=int)
     
     # データを入力して主成分ベクトルを計算する
-    # データは平均0を前提とする
     # n: 抽出する主成分の数
     def fit_transform(self, X, n):
         self.X = X
         # グラム行列
         K = self.__gram_mat(X)
         vals, vecs = np.linalg.eigh(K)
-        # 固有値の大きい順にソート
-        indices = vals.argsort()[::-1]
-        vals = vals[indices]
-        vecs = vecs[:, indices]
+        # eighは固有値の昇順で出力される
+        vals = vals[::-1]
+        vecs = vecs[:, ::-1]
         # 特異値と左特異ベクトル
         self.sigma = np.sqrt(vals[:n]) # (n)
         self.a = np.array(vecs[:, :n]).T  # (n,N)
         return self.a.T * self.sigma   # (N,n)
 
     # xの主成分表示を返す
-    def transform(self, X):
+    def transform(self, x):
         N = self.X.shape[0]
         n = self.sigma.size
         normalized_a = self.a.T / self.sigma # (N,n)
         y = np.zeros(n)
-        for i in range(N):
-            y += normalized_a[i] * self.__kernel(x, self.X[i])
+        k = np.array([self.__kernel(x, self.X[i]) for i in range(N)]) #(N)
+        y = k.dot(normalized_a) # (n)
         return y
     
 if __name__ == '__main__':
@@ -73,8 +71,6 @@ if __name__ == '__main__':
     beta=1.0
     pca = KernelPca(beta)
     y = pca.fit_transform(x, 2)
-
-    y1 = np.array([pca.transform(xi) for xi in x])
 
     scikit_kpca = KernelPCA(n_components=2, kernel='rbf', gamma=beta)
     y_kpca = scikit_kpca.fit_transform(x)
