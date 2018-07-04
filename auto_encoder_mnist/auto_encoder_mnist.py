@@ -3,7 +3,7 @@
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
 import matplotlib.pyplot as plt
-
+import numpy as np
 
 mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
 H = 50
@@ -38,6 +38,11 @@ h_drop = tf.nn.dropout(h, keep_prob)
 W2 = tf.transpose(W)  # 転置
 b2 = bias_variable([784])
 y = tf.nn.relu(tf.matmul(h_drop, W2) + b2)
+
+# 中間層に固定の値を入れた時の出力を観測するために追加
+# Variable: yy
+hh = tf.placeholder(tf.float32, [H])
+yy = tf.nn.relu(tf.tensordot(hh, W2, 1) + b2)
 
 # Define Loss Function
 loss = tf.nn.l2_loss(y - x) / BATCH_SIZE
@@ -92,4 +97,20 @@ for row in range(N_ROW):
         plt.tick_params(labelleft=False)
         
 plt.savefig("result.png")
+plt.show()
+
+# 中間層の各ユニットに相当する画像を出力
+N_COL = 10
+N_ROW = H // N_COL
+plt.figure(figsize=(N_COL, N_ROW))
+for row in range(N_ROW):
+    for col in range(N_COL):
+        i = row*N_COL + col
+        unit = np.zeros(H)
+        unit[i] = 1
+        eigen = yy.eval(session=sess, feed_dict={hh: unit, keep_prob: 1.0})
+        plt.subplot(N_ROW, N_COL, row*N_COL+col+1)
+        plt.imshow(eigen.reshape((28, 28)), cmap="magma", clim=(0, 1.0), origin='upper')
+        plt.tick_params(labelbottom=False)
+        plt.tick_params(labelleft=False)
 plt.show()
