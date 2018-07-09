@@ -31,41 +31,43 @@ def bias_variable(shape):
     return tf.Variable(initial)
 
 
-# Input: x : 28*28=784
+# Input
+#  x : shape=(n_batch, n_pixel), n_pixel=28*28=784
 x = tf.placeholder(tf.float32, [None, 784])
 
-# Variable: W, b1
+# Variable
+#  W  : shape=(n_pixel, n_hidden)
+#  b1 : shape=(n_hidden)
 W = weight_variable((784, H))
 b1 = bias_variable([H])
 
-# Hidden Layer: h
-#h = tf.nn.softsign(tf.matmul(x, W) + b1)
+# Hidden Layer
+#  h  : shape=(n_batch, n_hidden)
 h = tf.nn.relu(tf.matmul(x, W) + b1)
-keep_prob = tf.placeholder("float")
-#h_drop = tf.nn.dropout(h, keep_prob)
+keep_prob = tf.placeholder("float")  # drop-out用, 使っていない
 
-# Variable: b2
+# Variable
+#  W2 : shape=(n_hidden, n_pixels)
+#  b2 : shape=(n_pixels)
 W2 = tf.transpose(W)  # 転置
 b2 = bias_variable([784])
-#y = tf.nn.relu(tf.matmul(h_drop, W2) + b2)
+
+# Output
+#  y  : shape=(n_batch, n_pixels)
 y = tf.matmul(h, W2) + b2
 
-# 中間層に固定の値を入れた時の出力を観測するために追加
-# Variable: yy
-hh = tf.placeholder(tf.float32, [H])
-#yy = tf.nn.relu(tf.tensordot(hh, W2, 1) + b2)
-yy = tf.tensordot(hh, W2, 1) + b2
-
-# Define Loss Function
+# 2乗和誤差
+#  サンプル数方向で和をとり、ミニバッチ内で平均化
 reconstruct_loss = tf.nn.l2_loss(y - x) / BATCH_SIZE
 
 # スパース正則項
-# todo: ミニバッチでのみ平均化しているが、本によれば、
-#       ミニバッチ間の逐次平均が必要っぽい
-rho = tf.constant(0.05)
-#rho_hat = tf.reduce_mean(h_drop, 0)
-rho_hat = tf.reduce_mean(h, 0)
-#sparse_loss = tf.reduce_mean(rho * tf.log(tf.clip_by_value(rho, 1e-10, 1))
+# todo: ミニバッチ内でのみ平均化しているが、本によれば、
+#       ミニバッチ間も逐次平均が必要っぽい
+rho = tf.constant(0.05)              # 活性化率の目標値
+rho_hat = tf.reduce_mean(h, axis=0)  # 活性化率
+
+# 隠れ層のユニット方向で和を取る
+# 本に載っていた式に合わせてmeanではなくsumにしている
 sparse_loss = tf.reduce_sum(rho * tf.log(tf.clip_by_value(rho, 1e-10, 1))
                              - rho * tf.log(tf.clip_by_value(rho_hat, 1e-10, 1))
                              + (1 - rho) * tf.log(tf.clip_by_value(1 - rho, 1e-10, 1))
@@ -97,7 +99,7 @@ for step in range(2000):
     # Print Progress
     if step % 100 == 0:
         print(loss.eval(session=sess, feed_dict={x: batch_xs, keep_prob: 1.0}))
-        print(y.eval(session=sess, feed_dict={x: batch_xs, keep_prob: 1.0}))
+#        print(y.eval(session=sess, feed_dict={x: batch_xs, keep_prob: 1.0}))
         
 # Draw Encode/Decode Result
 N_COL = 10
@@ -131,14 +133,12 @@ plt.show()
 N_COL = 10
 N_ROW = H // N_COL
 plt.figure(figsize=(N_COL, N_ROW))
+eigen = W2.eval(session=sess) * 5.0  # 適当にスケーリング
 for row in range(N_ROW):
     for col in range(N_COL):
         i = row*N_COL + col
-        unit = np.zeros(H)
-        unit[i] = 5.0
-        eigen = yy.eval(session=sess, feed_dict={hh: unit, keep_prob: 1.0})
         plt.subplot(N_ROW, N_COL, row*N_COL+col+1)
-        plt.imshow(eigen.reshape((28, 28)), cmap="magma", clim=(0, 1.0), origin='upper')
+        plt.imshow(eigen[i].reshape((28, 28)), cmap="magma", clim=(0, 1.0), origin='upper')
         plt.tick_params(labelbottom=False)
         plt.tick_params(labelleft=False)
 plt.savefig("weight.png")
